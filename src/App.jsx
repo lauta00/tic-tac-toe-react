@@ -6,26 +6,41 @@ import { checkWinner, checkEndGame } from "./logic/board.js";
 import { Winner } from "./components/Winner.jsx";
 
 function App() {
-	const [board, setBoard] = useState(Array(9).fill(null));
-	const [turn, setTurn] = useState(turns.X);
+	const [board, setBoard] = useState(() => {
+		const boardFromStorage = window.localStorage.getItem("board");
+		return boardFromStorage
+			? JSON.parse(boardFromStorage)
+			: Array(9).fill(null);
+	});
+	const [turn, setTurn] = useState(() => {
+		const turnFromStorage = window.localStorage.getItem("turn");
+		return turnFromStorage ? turnFromStorage : turns.X;
+	});
 	const [winner, setWinner] = useState(null);
 
 	const resetGame = () => {
 		setBoard(Array(9).fill(null));
 		setTurn(turns.X);
 		setWinner(null);
+
+		window.localStorage.removeItem("board");
+		window.localStorage.removeItem("turn");
 	};
 
 	const updateBoard = (index) => {
+		// if has something
 		if (board[index] || winner) return;
-
+		// update board
 		const newBoard = [...board];
 		newBoard[index] = turn;
 		setBoard(newBoard);
-
+		// change turn
 		const newTurn = turn == turns.X ? turns.O : turns.X;
 		setTurn(newTurn);
-
+		// save match
+		window.localStorage.setItem("board", JSON.stringify(newBoard));
+		window.localStorage.setItem("turn", newTurn);
+		// check winner
 		const newWinner = checkWinner(newBoard);
 		if (newWinner) {
 			confetti();
